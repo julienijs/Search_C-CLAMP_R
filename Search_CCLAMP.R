@@ -1,56 +1,75 @@
-# Set your working directory
-setwd("./Corpus")
+# Install necessary packages if not already installed
+if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
+if (!requireNamespace("openxlsx", quietly = TRUE)) install.packages("openxlsx")
 
-# Get a list of all .txt files in the directory
-files <- list.files(pattern = "\\.txt$")
+# Load required libraries
+library(stringr)
+library(openxlsx)
 
-# Initialize a data frame to store results
-results_df <- data.frame(file = character(), 
-                         left_context = character(), 
-                         pattern = character(), 
-                         right_context = character(), 
-                         stringsAsFactors = FALSE)
-
-# Define the regular expression pattern
-pattern <- "\\bwoord\\b"
-
-# Function to extract context
-extract_context <- function(content, pattern_position) {
-  left_start <- max(1, pattern_position - 100)
-  left_context <- paste(content[left_start:pattern_position], collapse = " ")
-  
-  right_end <- min(length(content), pattern_position + 100)
-  right_context <- paste(content[(pattern_position + 1):right_end], collapse = " ")
-  
-  return(list(left_context = left_context, right_context = right_context))
-}
-
-# Loop through each file and search using regex
-for (i in seq_along(files)) {
+# Function to extract patterns and contexts
+extract_context <- function(file_path, pattern){
   # Read the file
-  content <- readLines(files[i])
+  text <- tolower(readLines(file_path))
   
-  # Check if the last line ends with a newline character
-  if (!grepl("\\n$", content[length(content)])) {
-    # If not, add a newline character
-    content[length(content)] <- paste(content[length(content)], "\n")
+  # Find positions of the pattern
+  matches <- str_locate_all(text, pattern, ignore_case = TRUE)[[1]]
+  
+  # Initialize a data frame to store results
+  results <- data.frame(Filename = character(0), 
+                        Left_Context = character(0), 
+                        Pattern = character(0), 
+                        Right_Context = character(0), 
+                        stringsAsFactors = FALSE)
+  
+  # Iterate through matches
+  for (match in matches) {
+    start <- match[1]
+    end <- match[2]
+    
+    left_context_start <- max(1, start - 10)
+    left_context_end <- start - 1
+    
+    right_context_start <- end + 1
+    right_context_end <- min(length(text), end + 10)
+    
+    left_context <- paste(text[left_context_start:left_context_end], collapse = " ")
+    right_context <- paste(text[right_context_start:right_context_end], collapse = " ")
+    
+    result <- data.frame(Filename = file_path, 
+                         Left_Context = left_context, 
+                         Pattern = substr(text[start:end], start - left_context_start + 1, end - left_context_start + 1), 
+                         Right_Context = right_context, 
+                         stringsAsFactors = FALSE)
+    
+    results <- rbind(results, result)
   }
   
-  # Search using regex
-  occurrences <- grep(pattern, content, ignore.case = TRUE)
-  
-  # Process occurrences
-  for (position in occurrences) {
-    context <- extract_context(content, position)
-    result_row <- data.frame(file = files[i], 
-                             left_context = context$left_context, 
-                             pattern = content[position], 
-                             right_context = context$right_context,
-                             stringsAsFactors = FALSE)
-    results_df <- rbind(results_df, result_row)
-  }
+  return(results)
 }
 
-# Save the results to a CSV file
-write.csv(results_df, "results.csv", row.names = FALSE)
+# Define the pattern you want to search
+pattern <- "woord"
+
+# Define the directory containing your .txt files
+setwd("./Datasets")
+
+# List all .txt files in the directory
+files <- list.files(pattern = "\\.txt$", full.names = TRUE)
+
+# Initialize a data frame to store all results
+all_results <- data.frame(Filename = character(0), 
+                          Left_Context = character(0), 
+                          Pattern = character(0), 
+                          Right_Context = character(0), 
+                          stringsAsFactors = FALSE)
+
+# Loop through each file and extract results
+for (file in files) {
+  results <- extract_context(file, pattern)
+  all_results <- rbind(all_results, results)
+}
+
+# Write the results to an Excel file
+write.xlsx(all_results, "output.xlsx", row.names = FALSE)
+
 
