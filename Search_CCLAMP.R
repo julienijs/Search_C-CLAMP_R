@@ -22,6 +22,14 @@ extract_context <- function(file_path, pattern){
   # Join the lines into a single string with spaces
   text <- paste(text, collapse = " ")
   
+  # Find positions of all matches
+  matches <- gregexpr(pattern, text, perl = TRUE)[[1]]
+  
+  # Check if there are no matches, and skip processing if so
+  if (length(matches) == 0 || all(matches == -1)) {
+    return(NULL)
+  }
+  
   # Initialize a data frame to store results
   results <- data.frame(File = character(0), 
                         Left_Context = character(0), 
@@ -30,43 +38,32 @@ extract_context <- function(file_path, pattern){
                         stringsAsFactors = FALSE
   )
   
-  # Find positions of the pattern
-  matches <- gregexpr(pattern, text, fixed = FALSE)[[1]]
-  
   for (match_start in matches) {
-    print(file_path)
-    print(match_start)
-    if (match_start < 1) {
-      next  # Skip if pattern is not found
-    }
-    match_end <- match_start + nchar(pattern) - 1
+    match_length <- attr(matches, "match.length")
+    match_end <- match_start + match_length - 1
     
-    # Adjust left context bounds
     left_context_start <- max(1, match_start - 1000)
     left_context_end <- match_start - 1
     
-    # Adjust right context bounds
     right_context_start <- match_end + 1
     right_context_end <- min(match_end + 1000, nchar(text))
     
-    # Extract contexts and match
-    left_context <- substr(text, left_context_start, left_context_end)
     pattern_match <- substr(text, match_start, match_end)
+    left_context <- substr(text, left_context_start, left_context_end)
     right_context <- substr(text, right_context_start, right_context_end)
     
-    # Create data frame
     result <- data.frame(File = gsub(".txt", "", file_path), 
                          Left_Context = left_context, 
                          Pattern = pattern_match, 
                          Right_Context = right_context, 
                          stringsAsFactors = FALSE)
     
-    # Write results to data frame
     results <- rbind(results, result)
   }
   
   return(results)
 }
+
 
 # List all .txt files in the directory
 files <- list.files(pattern = "\\.txt$")

@@ -6,7 +6,7 @@ setwd("./Corpus_Tagged")
 
 # Define the pattern you want to search
 pattern <- "\\been<[^>]+> klein(e)*<[^>]+>"
-#pattern <- "Als<als;VG\\(onder\\);0.997449>"
+#pattern <- "\\been<[^>]+>"
 
 # Install necessary packages if not already installed
 if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
@@ -23,6 +23,14 @@ extract_context <- function(file_path, pattern){
   # Join the lines into a single string with spaces
   text <- paste(text, collapse = " ")
   
+  # Find positions of all matches
+  matches <- gregexpr(pattern, text, perl = TRUE)[[1]]
+  
+  # Check if there are no matches, and skip processing if so
+  if (length(matches) == 0 || all(matches == -1)) {
+    return(NULL)
+  }
+  
   # Initialize a data frame to store results
   results <- data.frame(File = character(0), 
                         Left_Context = character(0), 
@@ -31,31 +39,20 @@ extract_context <- function(file_path, pattern){
                         stringsAsFactors = FALSE
   )
   
-  # Find positions of the pattern
-  matches <- gregexpr(pattern, text, fixed = FALSE, perl = TRUE)[[1]]
-  print(matches)
   for (match_start in matches) {
-    if (match_start < 1) {
-      next  # Skip if pattern is not found
-    }
-    match_end <- match_start + str_length(pattern) - 1
-    print(pattern)
-    print(str_length(pattern))
+    match_length <- attr(matches, "match.length")
+    match_end <- match_start + match_length - 1
     
-    # Adjust left context bounds
     left_context_start <- max(1, match_start - 1000)
     left_context_end <- match_start - 1
     
-    # Adjust right context bounds
     right_context_start <- match_end + 1
-    right_context_end <- min(match_end + 1000, str_length(text))
+    right_context_end <- min(match_end + 1000, nchar(text))
     
     pattern_match <- substr(text, match_start, match_end)
     left_context <- substr(text, left_context_start, left_context_end)
     right_context <- substr(text, right_context_start, right_context_end)
     
-    
-    # Remove tags from left and right context
     left_context <- gsub("<[^>]+>", "", left_context)
     right_context <- gsub("<[^>]+>", "", right_context)
     
