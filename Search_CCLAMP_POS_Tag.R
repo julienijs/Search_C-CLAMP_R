@@ -5,8 +5,8 @@ metadata <- read.delim("C-CLAMP_metadata_gender.txt", header = TRUE, sep = "\t",
 setwd("./Corpus_Tagged")
 
 # Define the pattern you want to search
-pattern <- "\\blezer(s*)\\b"
-
+pattern <- "\\been<[^>]+> klein(e)*<[^>]+>"
+#pattern <- "Als<als;VG\\(onder\\);0.997449>"
 
 # Install necessary packages if not already installed
 if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
@@ -33,14 +33,13 @@ extract_context <- function(file_path, pattern){
   
   # Find positions of the pattern
   matches <- gregexpr(pattern, text, fixed = FALSE)[[1]]
-  
+  print(matches)
   for (match_start in matches) {
-    print(file_path)
-    print(match_start)
     if (match_start < 1) {
       next  # Skip if pattern is not found
     }
     match_end <- match_start + nchar(pattern) - 1
+    print(nchar(pattern))
     
     # Adjust left context bounds
     left_context_start <- max(1, match_start - 1000)
@@ -50,14 +49,16 @@ extract_context <- function(file_path, pattern){
     right_context_start <- match_end + 1
     right_context_end <- min(match_end + 1000, nchar(text))
     
-    # delete POS-tags
-    
-    
-    left_context <- substr(text, left_context_start, left_context_end)
     pattern_match <- substr(text, match_start, match_end)
+    left_context <- substr(text, left_context_start, left_context_end)
     right_context <- substr(text, right_context_start, right_context_end)
     
-    result <- data.frame(File = gsub(".txt", "", file_path), 
+    
+    # Remove tags from left and right context
+    left_context <- gsub("<[^>]+>", "", left_context)
+    right_context <- gsub("<[^>]+>", "", right_context)
+    
+    result <- data.frame(File = gsub("_pos.txt", "", file_path), 
                          Left_Context = left_context, 
                          Pattern = pattern_match, 
                          Right_Context = right_context, 
