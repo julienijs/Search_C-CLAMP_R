@@ -32,14 +32,15 @@ extract_context <- function(file_path, pattern){
   )
   
   # Find positions of the pattern
-  matches <- gregexpr(pattern, text, fixed = FALSE)[[1]]
+  matches <- gregexpr(pattern, text, fixed = FALSE, perl = TRUE)[[1]]
   print(matches)
   for (match_start in matches) {
     if (match_start < 1) {
       next  # Skip if pattern is not found
     }
-    match_end <- match_start + nchar(pattern) - 1
-    print(nchar(pattern))
+    match_end <- match_start + str_length(pattern) - 1
+    print(pattern)
+    print(str_length(pattern))
     
     # Adjust left context bounds
     left_context_start <- max(1, match_start - 1000)
@@ -47,7 +48,7 @@ extract_context <- function(file_path, pattern){
     
     # Adjust right context bounds
     right_context_start <- match_end + 1
-    right_context_end <- min(match_end + 1000, nchar(text))
+    right_context_end <- min(match_end + 1000, str_length(text))
     
     pattern_match <- substr(text, match_start, match_end)
     left_context <- substr(text, left_context_start, left_context_end)
