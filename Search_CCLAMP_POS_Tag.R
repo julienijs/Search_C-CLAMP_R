@@ -2,7 +2,7 @@
 metadata <- read.delim("C-CLAMP_metadata_gender.txt", header = TRUE, sep = "\t", fill = FALSE)
 
 # Set your working directory
-setwd("./Corpus")
+setwd("./Corpus_Tagged")
 
 # Define the pattern you want to search
 pattern <- "\\blezer(s*)\\b"
