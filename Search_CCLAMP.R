@@ -7,7 +7,6 @@ setwd("./Corpus")
 # Define the pattern you want to search
 pattern <- "\\blezer(s*)\\b"
 
-
 # Install necessary packages if not already installed
 if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
 if (!requireNamespace("openxlsx", quietly = TRUE)) install.packages("openxlsx")
@@ -50,16 +49,19 @@ extract_context <- function(file_path, pattern){
     right_context_start <- match_end + 1
     right_context_end <- min(match_end + 1000, nchar(text))
     
+    # Extract contexts and match
     left_context <- substr(text, left_context_start, left_context_end)
     pattern_match <- substr(text, match_start, match_end)
     right_context <- substr(text, right_context_start, right_context_end)
     
+    # Create data frame
     result <- data.frame(File = gsub(".txt", "", file_path), 
                          Left_Context = left_context, 
                          Pattern = pattern_match, 
                          Right_Context = right_context, 
                          stringsAsFactors = FALSE)
     
+    # Write results to data frame
     results <- rbind(results, result)
   }
   
@@ -83,7 +85,7 @@ for (file in files) {
 }
 
 
-# merge metadata with results
+# Merge metadata with results
 
 all_results <- merge(all_results, metadata, by="File")
 

@@ -50,6 +50,9 @@ extract_context <- function(file_path, pattern){
     right_context_start <- match_end + 1
     right_context_end <- min(match_end + 1000, nchar(text))
     
+    # delete POS-tags
+    
+    
     left_context <- substr(text, left_context_start, left_context_end)
     pattern_match <- substr(text, match_start, match_end)
     right_context <- substr(text, right_context_start, right_context_end)
