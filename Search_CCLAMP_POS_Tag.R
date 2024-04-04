@@ -2,11 +2,11 @@
 metadata <- read.delim("C-CLAMP_metadata_gender.txt", header = TRUE, sep = "\t", fill = FALSE)
 
 # Set your working directory
-setwd("./Corpus_Tagged")
+#setwd("./corpus_article_pos_flatversion")
+setwd("./Corpus_tagged")
 
 # Define the pattern you want to search
-pattern <- "\\been<[^>]+> klein(e)*<[^>]+>"
-#pattern <- "\\been<[^>]+>"
+pattern <- "\\b(?i)enge?\\[[^,]+, ADJ[^\\]]+\\]"
 
 # Install necessary packages if not already installed
 if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
@@ -53,10 +53,10 @@ extract_context <- function(file_path, pattern){
     left_context <- substr(text, left_context_start, left_context_end)
     right_context <- substr(text, right_context_start, right_context_end)
     
-    left_context <- gsub("<[^>]+>", "", left_context)
-    right_context <- gsub("<[^>]+>", "", right_context)
+    left_context <- gsub("\\[[^\\]]+\\]", "", left_context)
+    right_context <- gsub("\\[[^\\]]+\\]", "", right_context)
     
-    result <- data.frame(File = gsub("_pos.txt", "", file_path), 
+    result <- data.frame(File = gsub(".txt", "", file_path), 
                          Left_Context = left_context, 
                          Pattern = pattern_match, 
                          Right_Context = right_context, 
@@ -69,7 +69,7 @@ extract_context <- function(file_path, pattern){
 }
 
 # List all .txt files in the directory
-files <- list.files(pattern = "\\.txt$")
+files <- list.files(pattern = "\\.txt")
 
 # Initialize a data frame to store all results
 all_results <- data.frame(File = character(0), 
@@ -80,6 +80,7 @@ all_results <- data.frame(File = character(0),
 
 # Loop through each file and extract results
 for (file in files) {
+  print(file)
   results <- extract_context(file, pattern)
   all_results <- rbind(all_results, results)
 }
@@ -92,3 +93,4 @@ all_results <- merge(all_results, metadata, by="File")
 
 # Write the results to an Excel file
 write.xlsx(all_results, "output.xlsx", rowNames = FALSE, encoding = "UTF-8")
+write.csv(all_results, "output.txt")

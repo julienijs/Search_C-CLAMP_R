@@ -5,7 +5,8 @@ metadata <- read.delim("C-CLAMP_metadata_gender.txt", header = TRUE, sep = "\t",
 setwd("./Corpus")
 
 # Define the pattern you want to search
-pattern <- "\\blezer(s*)\\b"
+pattern <- "(?i)\\b(je|jij|jou|jouw|u|uw)\\b"
+#pattern <- "\\blezer(s*)\\b"
 
 # Install necessary packages if not already installed
 if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
@@ -77,6 +78,7 @@ all_results <- data.frame(File = character(0),
 
 # Loop through each file and extract results
 for (file in files) {
+  print(file)
   results <- extract_context(file, pattern)
   all_results <- rbind(all_results, results)
 }
@@ -89,3 +91,4 @@ all_results <- merge(all_results, metadata, by="File")
 
 # Write the results to an Excel file
 write.xlsx(all_results, "output.xlsx", rowNames = FALSE, encoding = "UTF-8")
+write.csv(all_results, "output.txt")
