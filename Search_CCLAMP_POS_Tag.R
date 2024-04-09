@@ -6,7 +6,7 @@ metadata <- read.delim("C-CLAMP_metadata_gender.txt", header = TRUE, sep = "\t",
 setwd("./Corpus_tagged")
 
 # Define the pattern you want to search
-pattern <- "\\b(?i)enge?\\[[^,]+, ADJ[^\\]]+\\]"
+pattern <- "\\b(?i)ik?\\[[^,]+, VNW[^\\]]+\\]"
 
 # Install necessary packages if not already installed
 if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
@@ -53,8 +53,8 @@ extract_context <- function(file_path, pattern){
     left_context <- substr(text, left_context_start, left_context_end)
     right_context <- substr(text, right_context_start, right_context_end)
     
-    left_context <- gsub("\\[[^\\]]+\\]", "", left_context)
-    right_context <- gsub("\\[[^\\]]+\\]", "", right_context)
+    left_context <- gsub("\\[.*?\\]", "", left_context)
+    right_context <- gsub("\\[.*?\\]", "", right_context)
     
     result <- data.frame(File = gsub(".txt", "", file_path), 
                          Left_Context = left_context, 
